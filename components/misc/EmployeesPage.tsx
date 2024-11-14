@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import { useEffect, useState } from 'react';
 import { User } from '@supabase/supabase-js';
@@ -13,24 +13,37 @@ import { Pagination } from '@/components/ui/pagination';
 import { DEFAULT_ITEMS_PER_PAGE } from '@/utils/constants';
 import { useTenant } from '@/utils/tenant-context';
 import { toast } from '@/components/ui/use-toast';
+import { Input } from '@/components/ui/input';
+
 interface EmployeesPageProps {
   user: User;
 }
 
 export default function EmployeesPage({ user }: EmployeesPageProps) {
   const [employees, setEmployees] = useState<any[]>([]);
+  const [filteredEmployees, setFilteredEmployees] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(DEFAULT_ITEMS_PER_PAGE);
   const [totalItems, setTotalItems] = useState(0);
+  const [searchQuery, setSearchQuery] = useState('');
   const router = useRouter();
   const { currentTenant } = useTenant();
-  
+
   useEffect(() => {
     if (currentTenant) {
       loadEmployees();
     }
   }, [currentPage, itemsPerPage, currentTenant]);
+
+  useEffect(() => {
+    // Filter employees based on search query
+    setFilteredEmployees(
+        employees.filter((employee) =>
+            `${employee.given_name} ${employee.surname}`.toLowerCase().includes(searchQuery.toLowerCase())
+        )
+    );
+  }, [searchQuery, employees]);
 
   async function loadEmployees() {
     try {
@@ -39,6 +52,7 @@ export default function EmployeesPage({ user }: EmployeesPageProps) {
       const { employees, count } = await getEmployees(supabase, currentTenant!.id, currentPage, itemsPerPage);
       if (employees) {
         setEmployees(employees);
+        setFilteredEmployees(employees); // Initialize filtered employees
         setTotalItems(count || 0);
       }
     } catch (error) {
@@ -55,18 +69,18 @@ export default function EmployeesPage({ user }: EmployeesPageProps) {
 
   if (!currentTenant) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <div className="text-center">
-          <h2 className="text-lg font-semibold">No Tenant Selected</h2>
-          <p className="text-muted-foreground">Please select a tenant from your account settings.</p>
-          <Button 
-            className="mt-4"
-            onClick={() => router.push('/account')}
-          >
-            Go to Account Settings
-          </Button>
+        <div className="flex items-center justify-center h-full">
+          <div className="text-center">
+            <h2 className="text-lg font-semibold">No Tenant Selected</h2>
+            <p className="text-muted-foreground">Please select a tenant from your account settings.</p>
+            <Button
+                className="mt-4"
+                onClick={() => router.push('/account')}
+            >
+              Go to Account Settings
+            </Button>
+          </div>
         </div>
-      </div>
     );
   }
 
@@ -86,17 +100,23 @@ export default function EmployeesPage({ user }: EmployeesPageProps) {
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
   return (
-    <div className="container mx-auto">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Employee List</CardTitle>
-          <Link href="/employees/add">
-            <Button variant="default">+ Add New</Button>
-          </Link>
-        </CardHeader>
-        <CardContent>
-          <table className="w-full">
-            <thead>
+      <div className="container mx-auto">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle>Employee List</CardTitle>
+            <Link href="/employees/add">
+              <Button variant="default">+ Add New</Button>
+            </Link>
+          </CardHeader>
+          <CardContent>
+            <Input
+                placeholder="Search employees by Given Name or Surname"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="mb-4"
+            />
+            <table className="w-full">
+              <thead>
               <tr className="text-left bg-muted">
                 <th className="p-2">Given Name</th>
                 <th className="p-2">Surname</th>
@@ -106,66 +126,66 @@ export default function EmployeesPage({ user }: EmployeesPageProps) {
                 <th className="p-2">Status</th>
                 <th className="p-2">Actions</th>
               </tr>
-            </thead>
-            <tbody>
-              {employees?.map((employee) => (
-                <tr 
-                  key={employee.id} 
-                  className="border-b hover:bg-muted/50 cursor-pointer"
-                  onClick={() => router.push(`/employees/edit/${employee.id}`)}
-                >
-                  <td className="p-2">{employee.given_name}</td>
-                  <td className="p-2">{employee.surname}</td>
-                  <td className="p-2">{employee.company_email}</td>
-                  <td className="p-2">{employee.mobile_number}</td>
-                  <td className="p-2">
-                    <div className="flex flex-wrap gap-1">
-                      {employee.departments?.map((ed: any) => (
-                        <span 
-                          key={ed.department.id}
-                          className="inline-flex px-2 py-1 text-xs font-medium rounded bg-blue-100 text-blue-800"
-                        >
+              </thead>
+              <tbody>
+              {filteredEmployees?.map((employee) => (
+                  <tr
+                      key={employee.id}
+                      className="border-b hover:bg-muted/50 cursor-pointer"
+                      onClick={() => router.push(`/employees/edit/${employee.id}`)}
+                  >
+                    <td className="p-2">{employee.given_name}</td>
+                    <td className="p-2">{employee.surname}</td>
+                    <td className="p-2">{employee.company_email}</td>
+                    <td className="p-2">{employee.mobile_number}</td>
+                    <td className="p-2">
+                      <div className="flex flex-wrap gap-1">
+                        {employee.departments?.map((ed: any) => (
+                            <span
+                                key={ed.department.id}
+                                className="inline-flex px-2 py-1 text-xs font-medium rounded bg-blue-100 text-blue-800"
+                            >
                           {ed.department.name}
                         </span>
-                      ))}
-                    </div>
-                  </td>
-                  <td className="p-2">
+                        ))}
+                      </div>
+                    </td>
+                    <td className="p-2">
                     <span className={`inline-flex px-2 py-1 text-xs font-medium rounded ${
-                      employee.is_active 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-red-100 text-red-800'
+                        employee.is_active
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-red-100 text-red-800'
                     }`}>
                       {employee.is_active ? 'Active' : 'Inactive'}
                     </span>
-                  </td>
-                  <td className="p-2">
-                    <Button 
-                      variant="ghost" 
-                      size="icon"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        router.push(`/employees/edit/${employee.id}`);
-                      }}
-                    >
-                      <Settings className="h-4 w-4" />
-                    </Button>
-                  </td>
-                </tr>
+                    </td>
+                    <td className="p-2">
+                      <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            router.push(`/employees/edit/${employee.id}`);
+                          }}
+                      >
+                        <Settings className="h-4 w-4" />
+                      </Button>
+                    </td>
+                  </tr>
               ))}
-            </tbody>
-          </table>
+              </tbody>
+            </table>
 
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            itemsPerPage={itemsPerPage}
-            totalItems={totalItems}
-            onPageChange={handlePageChange}
-            onItemsPerPageChange={handleItemsPerPageChange}
-          />
-        </CardContent>
-      </Card>
-    </div>
+            <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                itemsPerPage={itemsPerPage}
+                totalItems={totalItems}
+                onPageChange={handlePageChange}
+                onItemsPerPageChange={handleItemsPerPageChange}
+            />
+          </CardContent>
+        </Card>
+      </div>
   );
 }
