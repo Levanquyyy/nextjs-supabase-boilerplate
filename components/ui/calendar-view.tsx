@@ -14,6 +14,16 @@ import {
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/utils/cn";
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer"
 
 // Constants for row limits
 const CALENDAR_SINGLE_ROW_LIMIT = 3;
@@ -121,6 +131,7 @@ export function CalendarView({ allocations }: CalendarViewProps) {
   };
 
   const renderAllocationCell = (allocation: DayAllocation) => {
+
     return (
       <div
         className={cn(
@@ -129,7 +140,25 @@ export function CalendarView({ allocations }: CalendarViewProps) {
         )}
         title={formatTooltip(allocation)}
       >
-        {allocation.employee_name}
+        <Drawer>
+          <DrawerTrigger className={"w-full"}>
+            {allocation.employee_name}
+          </DrawerTrigger>
+          <DrawerContent>
+            <DrawerHeader>
+              <DrawerTitle>Tên Khách: {allocation.employee_name}</DrawerTitle>
+
+              <DrawerDescription>Tiến độ: {allocation.total_percentage} %</DrawerDescription>
+            </DrawerHeader>
+            <DrawerFooter>
+              <Button>Submit</Button>
+              <DrawerClose>
+                <Button variant="outline">Cancel</Button>
+              </DrawerClose>
+            </DrawerFooter>
+          </DrawerContent>
+        </Drawer>
+
       </div>
     );
   };
