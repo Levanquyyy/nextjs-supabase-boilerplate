@@ -7,7 +7,8 @@ import { getClients } from '@/utils/supabase/queries';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { Settings } from 'lucide-react';
+import { Settings,BookUser} from 'lucide-react';
+
 import { useRouter } from 'next/navigation';
 import { Pagination } from '@/components/ui/pagination';
 import { DEFAULT_ITEMS_PER_PAGE } from '@/utils/constants';
@@ -138,7 +139,18 @@ export default function ClientsPage({ user }: ClientsPageProps) {
                     >
                       <Settings className="h-4 w-4" />
                     </Button>
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          router.push(`/clients/info/${client.id}`);
+                        }}
+                    >
+                      <BookUser className="h-4 w-4" />
+                    </Button>
                   </td>
+
                 </tr>
               ))}
             </tbody>

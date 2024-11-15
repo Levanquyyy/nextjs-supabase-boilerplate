@@ -212,7 +212,24 @@ export async function getProject(supabase: SupabaseClient, id: string) {
 
   return project;
 }
-    
+// export async function getProjectsById(supabase: SupabaseClient, id: string) {
+//   const { data: projects, error } = await supabase
+//       .from('Projects')
+//       .select('*, Clients(name)')
+//       .eq('id', id);
+//
+//   if (error) {
+//     console.error('Error fetching projects:', error);
+//     return { projectsbyid: null };
+//   }
+//
+//   const projectsWithClientNameById = projects?.map((project) => ({
+//     ...project,
+//     client_name: project.Clients ? project.Clients.name : 'Unknown Client',
+//   }));
+//
+//   return { projectsbyid: projectsWithClientNameById };
+// }
 export async function addProject(supabase: SupabaseClient, projectData: any) {
   const { data, error } = await supabase
     .from('Projects')
